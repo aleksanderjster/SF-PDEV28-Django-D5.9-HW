@@ -1,0 +1,137 @@
+from django.contrib.auth.models import User
+from news.models import *
+
+# 1. creation of two  new user as readers
+reader1 = User.objects.create_user('reader 01')
+reader2 = User.objects.create_user('reader 02')
+
+# 2. creation of two new users as Authors
+Author.objects.create(user=User.objects.create_user('author 01'))
+Author.objects.create(user=User.objects.create_user('author 02'))
+
+# 3. creation categories
+category_sport = Category.objects.create(category=ctg_sport)
+category_culture = Category.objects.create(category=ctg_culture)
+category_world = Category.objects.create(category=ctg_world)
+category_IT = Category.objects.create(category=ctg_technology)
+category_finance = Category.objects.create(category=ctg_finance)
+
+# 4. and 5. creation of 2 articles and 1 news and assigning 2 categories
+#creation authors
+author1 = Author.objects.get(user=User.objects.get(username='author 01').id)
+author2 = Author.objects.get(user=User.objects.get(username='author 02').id)
+
+# creation news
+news1 = Post.objects.create(author=author1, type=news)
+
+news1.title = 'Технология Li-Fi использует свет для передачи данных в 100 раз быстрее Wi-Fi'
+news1.content = 'Некоммерческая организация Институт инженеров по электротехнике и радиоэлектронике (IEEE) приняла новый стандарт световой беспроводной связи под названием Li-Fi.\nИдея использования света вместо радиоволн давно продвигается сторонниками Li-Fi, включая pureLiFi, Fraunhofer HHI и Light Communications 802.11bb Task Group.\nПриемники сигналов преобразуют фотоны обратно в информацию.\nПреимуществами Li-Fi является высокая скорость и работа в оптическом спектре, что обеспечивает надежность, низкое время задержки и затрудняет перехват данных.'
+news1.save()
+
+news1.category.add(category_IT)
+news1.category.add(category_world)
+
+
+# creation article_1
+article1 = Post.objects.create(author=author2, type=article)
+
+article1.title = 'Зачем переводят имена. Есть ли в этом смысл?'
+article1.content = 'Злодеус Злей. Эти слова буквально олицетворяют собой всю бессмысленность и беспощадность адаптации имен собственных. Как до такого вообще можно было додуматься? Как Северус Снейп мог превратиться в это недоразумение? Ничем иным, кроме как изощренным издевательством над персонажем, "Гарри Поттером" в целом и его поклонниками, я назвать данную "локализацию" не могу. Вот неужели, так сложно понять, что переводить имена собственные - это плохая идея, которая ничем хорошим не может закончиться?\nКазалось бы, вывод напрашивается сам собой. Но так ли это на самом деле? Действительно ли не бывает ситуаций, когда без перевода имен собственных на русский язык не обойтись? Конечно, Злодеус Злей - это символ неудачной и попросту никому ненужной адаптации, который никогда не будет забыт. Но есть удачные примеры?'
+article1.save()
+
+article1.category.add(category_world)
+article1.category.add(category_culture)
+
+
+# creation article_2
+article2 = Post.objects.create(author=author1, type=article)
+
+article2.title = 'Спорт в жизни детей. И почему он особенно необходим современному ребёнку'
+article2.content = 'Загорелась  идеей написать о мотивации и поддержке детей в спорте. Но поняла, что это настолько глубокая и важная тема, что надо раскрывать ее частями. Следите за публикациями.\n«Ребёнка нужно в спорт» - это можно услышать из уст почти каждого родителя. На вопрос «зачем?» мало кто может внятно ответить. А ведь в этом кроется основа не только вашего отношения к занятиям Чада, но и самого ребёнка.'
+article2.save()
+
+article2.category.add(category_sport)
+article2.category.add(category_culture)
+
+
+# 6. Creation at least 1 comment to every post
+# creation commentsC
+comment1 = Comment.objects.create(post=news1, user=reader1)
+comment1.comment = 'До чего дошла наука ... :)'
+comment1.save()
+
+comment2 = Comment.objects.create(post=news1, user=author2.user)
+comment2.comment = 'Keep moving forward!'
+comment2.save()co
+
+comment3 = Comment.objects.create(post=article1, user=reader2)
+comment3.comment = 'А как же Кощей бесмертный или Водяной? Они ведь тоже несут смысл в имени!' 
+comment3.save()
+
+comment4 = Comment.objects.create(post=article2, user=reader1)
+comment4.comment = 'Спорт - это амбиции родителей!'
+comment4.save()
+
+comment5 = Comment.objects.create(post=article2, user=author2.user)
+comment5.comment = 'Физкультуре дорогу!'
+comment5.save()
+
+
+# 7. applying likes and dislikes to articles and comments
+
+#applying random likes and dislikes to each post and coomment
+import random
+posts = [news1, article1, article2, comment1, comment2, comment3, comment4, comment5]
+
+## likes
+>>> for a in posts:
+...     for _ in range(random.randint(1, 20)):
+...             a.like()
+...             a.save()
+... 
+>>>
+
+## dislikes
+>>> for a in posts:
+...     for _ in range(random.randint(1, 5)):
+...             a.dislike() 
+...             a.save()
+... 
+>>> 
+
+
+# 8. update users rating (only authors have rating)
+authors = Author.objects.all()
+>>> for author in authors:
+...     author.update_rating()
+... 
+>>>
+
+# 9. Print username for user with highest rating
+authors.order_by('-rating').first().user.username
+
+# 10. Print out date, username, rating, title and Preview of article based on rating
+best_article = Post.objects.all().order_by('-rating').first()
+
+article_review = '='*60+'\n'
+article_review += f'{best_article.publication_date.strftime("%Y-%m-%d %H:%M:%S")}'
+article_review += f' by: {best_article.author.user.username}\n'
+article_review += f'Rating: {best_article.rating}\n'
+article_review += f'Title: {best_article.title}\n'
+article_review += f'{best_article.preview()}\n'
+article_review += '='*60
+print(article_review)
+
+
+
+# 11. Print out all comments to this article (date, username, rating, comment).
+best_article_comments = Comment.objects.filter(post=best_article)
+>>> for comment in best_article_comments:
+...     comment_review = '=' * 60 + '\n'
+...     comment_review += f'{comment.publication_date.strftime("%Y-%m-%d %H:%M:%S")}'
+...     comment_review += f' by {comment.user.username}\n'
+...     comment_review += f'Rating: {comment.rating}\n'
+...     comment_review += f'{comment.comment}\n'
+...     comment_review += '=' * 60 
+...     print(comment_review)
+
